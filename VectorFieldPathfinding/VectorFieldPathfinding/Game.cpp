@@ -1,8 +1,6 @@
 /// <summary>
-/// @author Peter Lowe
-/// @date May 2019
-///
-/// you need to change the above lines or lose marks
+/// @author Sean Whelan
+/// @date October 2022
 /// </summary>
 
 #include "Game.h"
@@ -17,9 +15,10 @@
 /// load and setup thne image
 /// </summary>
 Game::Game() :
-	m_window{ sf::VideoMode{ 800U, 600U, 32U }, "SFML Game" },
+	m_window{ sf::VideoMode{ 1000, 1000 }, "VectorFieldPathfinding" },
 	m_exitGame{false} //when true game will exit
 {
+	TILE_SIZE = sf::Vector2f(m_window.getSize().x, m_window.getSize().y);
 	setupFontAndText(); // load font 
 	setupSprite(); // load texture
 }
@@ -111,8 +110,8 @@ void Game::update(sf::Time t_deltaTime)
 void Game::render()
 {
 	m_window.clear(sf::Color::White);
-	m_window.draw(m_welcomeMessage);
-	m_window.draw(m_logoSprite);
+	/*m_window.draw(m_welcomeMessage);
+	m_window.draw(m_logoSprite);*/
 	m_window.display();
 }
 

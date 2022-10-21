@@ -1,6 +1,6 @@
 /// <summary>
-/// author Pete Lowe May 2019
-/// you need to change the above line or lose marks
+/// @author Sean Whelan
+/// @date October 2022
 /// </summary>
 #ifndef GAME_HPP
 #define GAME_HPP
@@ -36,6 +36,8 @@ private:
 	sf::Text m_welcomeMessage; // text used for message on screen
 	sf::Texture m_logoTexture; // texture used for sfml logo
 	sf::Sprite m_logoSprite; // sprite used for sfml logo
+	sf::Vector2f TILE_SIZE;
+
 	bool m_exitGame; // control exiting game
 
 };
