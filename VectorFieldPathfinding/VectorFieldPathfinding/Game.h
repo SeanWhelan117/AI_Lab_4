@@ -10,12 +10,17 @@
 /// Don't forget the endif at the bottom
 /// </summary>
 #include <SFML/Graphics.hpp>
+#include "Grid.h"
+#include "Cell.h"
 
 class Game
 {
 public:
 	Game();
 	~Game();
+
+	Grid myGrid;
+	Cell myCell;
 	/// <summary>
 	/// main method for game
 	/// </summary>

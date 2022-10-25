@@ -15,12 +15,19 @@
 /// load and setup thne image
 /// </summary>
 Game::Game() :
-	m_window{ sf::VideoMode{ 1000, 1000 }, "VectorFieldPathfinding" },
-	m_exitGame{false} //when true game will exit
+	m_window{ sf::VideoMode{ 1500, 1500 }, "VectorFieldPathfinding" },
+	m_exitGame{false}, //when true game will exit
+	myGrid()
 {
 	TILE_SIZE = sf::Vector2f(m_window.getSize().x, m_window.getSize().y);
 	setupFontAndText(); // load font 
 	setupSprite(); // load texture
+
+	//Game::Game()
+	//	: m_window(sf::VideoMode(Globals::SCREEN_X, Globals::SCREEN_Y, 32), "The Greatest Escape", sf::Style::Default)
+	//	, mygrid(enemy, player)
+	//{
+	//	m_window.setVerticalSyncEnabled(true);
 }
 
 /// <summary>
@@ -109,7 +116,10 @@ void Game::update(sf::Time t_deltaTime)
 /// </summary>
 void Game::render()
 {
-	m_window.clear(sf::Color::White);
+	m_window.clear(sf::Color::Black);
+
+	myCell.render(m_window);
+	myGrid.render(m_window);
 	/*m_window.draw(m_welcomeMessage);
 	m_window.draw(m_logoSprite);*/
 	m_window.display();
