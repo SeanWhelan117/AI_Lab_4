@@ -1,64 +1,84 @@
 #include "Cell.h"
 
-Cell::Cell()
+void Cell::setStartColour()
 {
-
-}
-
-Cell::~Cell()
-{
-}
-
-Cell::Cell(sf::Vector2f t_position, int t_cellID)
-{
-	m_id = t_cellID;
-	m_shape.setSize(sf::Vector2f(1400 / 20, 900 / 20));
-	m_shape.setFillColor(sf::Color::Transparent);
-	m_shape.setOutlineColor(sf::Color::Cyan);
-	m_shape.setOutlineThickness(3);
-	m_shape.setPosition(t_position);
-	m_isPassable = true;
-	m_previousCellId = -1;
-
-}
-
-Cell* Cell::previous() const
-{
-	return m_previous;
-}
-
-int Cell::weight() const
-{
-	return 1;
+    cellRect.setFillColor(sf::Color::Green);
 }
 
 
-
-void Cell::render(sf::RenderWindow& t_window)
-{
-	t_window.draw(m_shape);
-
-}
-
+//bool Cell::getMarked()
+//{
+//    return markedBool;
+//}
 
 
 void Cell::setMarked(bool t_marked)
 {
-	m_marked = t_marked;
+    markedBool = t_marked;
 }
 
-bool Cell::marked() const
+
+void Cell::setEndColour()
 {
-	return m_marked;
+    cellRect.setFillColor(sf::Color::Red);
 }
 
-void Cell::setPrevious(Cell* previous)
+//bool Cell::getEndPoint()
+//{
+//    return endPointSquare;
+//}
+
+int Cell::getID()
 {
-	m_previous = previous;
+    return ID;
 }
 
-void Cell::addNeighbours(int t_cellID)
+//bool Cell::getStartPoint()
+//{
+//    return startPointSquare;
+//}
+
+void Cell::setEndPoint(bool t_endPointSet)
 {
-	m_neighbours.push_back(t_cellID);
+    endPointSquare = t_endPointSet;
+    std::cout << "end point set" << std::endl;
 }
 
+void Cell::setStartPoint(bool t_startPointSet)
+{
+    startPointSquare = t_startPointSet;
+    std::cout << "start point set" << std::endl;
+}
+
+
+
+void Cell::setID(int t_id)
+{
+    ID = t_id;
+}
+
+void Cell::setPos(sf::Vector2f t_position)
+{
+    cellRect.setPosition(t_position);
+}
+
+
+
+sf::RectangleShape Cell::getCellRect()
+{
+    return cellRect;
+}
+
+void Cell::setupCellRect()
+{
+    cellRect.setFillColor(sf::Color::Transparent);
+    cellRect.setOutlineColor(sf::Color::Cyan);
+    cellRect.setOutlineThickness(1.5f);
+    cellRect.setSize(sf::Vector2f{ 1500 / 50,1500 / 50 });
+}
+
+void Cell::setNeighbours(Cell* t_neighbour)
+{
+    t_neighbour->setEndColour();
+    m_neighbour.push_back(t_neighbour);
+}

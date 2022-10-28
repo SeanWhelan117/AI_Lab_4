@@ -1,105 +1,125 @@
 #include "Grid.h"
 
-class AStarComparer
+Cell* Grid::atIndex(int t_id)
 {
-public:
-    bool operator()(Cell* t_n1, Cell* t_n2) const
-    {
-        return (t_n1->m_h + t_n1->m_pathCost) > (t_n2->m_h + t_n2->m_pathCost);
-
-    }
-};
-
+	int x = t_id % MAX_ROWS;
+	int y = t_id / MAX_COLS;
+	// does
+	int total = x + (y * MAX_COLS);
+	return 	&gridVector.at(total);
+}
 
 Grid::Grid()
 {
-    if (!m_font.loadFromFile("Assets/Fonts/arial.ttf"))
-    {
-        std::cout << "error with font file file";
-    }
+	setupGrid();
+	Cell theCell;
+	theCell.setID(901);
+	theCell.setStartColour();
+	setNeighbours(&theCell);
 
+	int i = 0;
 }
 
 Grid::~Grid()
 {
-
 }
 
-Cell& Grid::returnCell(int t_id)
+void Grid::setNeighbours(Cell* t_cell)
 {
-    return m_cellsArray.at(t_id);
+	int row = t_cell->xPos;
+	int col = t_cell->yPos;
+
+	for (int direction = 0; direction < 9; direction++) {
+		if (direction == 4) continue;
+
+		int n_row = row + ((direction % 3) - 1); // Neighbor row
+		int n_col = col + ((direction / 3) - 1); // Neighbor column
+
+		// Check the bounds:
+		if (n_row >= 0 && n_row < MAX_ROWS && n_col >= 0 && n_col < MAX_COLS) {
+
+			int id = n_row + (n_col * 50);
+			t_cell->setNeighbours(atIndex(id));
+			//std::cout <<"ID"<<id<< " Neighbor: " << n_row << "," << n_col << ": " << std::endl;		
+		}
+	}
+
+
+
 }
 
-void Grid::neighbours(int t_row, int t_col, std::vector<Cell>& t_cells, int t_current)
+void Grid::selectStartEndPositions(sf::RenderWindow& t_window)
 {
-    // List all neighbors:
-    for (int direction = 0; direction < 9; direction++) {
-        if (direction == 4) continue; // Skip 4, this is ourself.
+	const  sf::RenderWindow& m_window = t_window;
+	sf::Vector2f mousePosition = sf::Vector2f{ sf::Mouse::getPosition(m_window) };
 
-        int n_row = t_row + ((direction % 3) - 1); // Neighbor row
-        int n_col = t_col + ((direction / 3) - 1); // Neighbor column
 
-        // Check the bounds:
-        if (n_row >= 0 && n_row < m_maxRows && n_col >= 0 && n_col < m_maxCols) {
+	for (int i = 0; i < MAX_CELLS; i++)
+	{
+		if (gridVector.at(i).getCellRect().getGlobalBounds().contains(mousePosition))
+		{
+			if (startPositionFoundBool == false)
+			{
+				// for the start position  for the algorithim
+				if (sf::Mouse::isButtonPressed(sf::Mouse::Left))
+				{
+					cout << std::to_string(gridVector.at(i).getID()) << endl;
+					gridVector.at(i).setStartColour();
+					gridVector.at(i).setStartPoint(true);
+					startPositionFoundBool = true;
+				}
+			}
 
-            // A valid neighbor:
-            std::cout << "Neighbor: " << n_row << "," << n_col << " - " << t_current << std::endl;
-            t_cells.at(t_current).addNeighbours(n_row + (n_col * 20));
+			if (endPositionFoundBool == false)
+			{
+				// for the start position  for the algorithim
+				if (sf::Mouse::isButtonPressed(sf::Mouse::Right))
+				{
+					cout << std::to_string(gridVector.at(i).getID()) << endl;
+					gridVector.at(i).setEndColour();
+					gridVector.at(i).setEndPoint(true);
+					endPositionFoundBool = true;
+				}
+			}
 
-            // add the cell id 
-            if (direction == 0 || direction == 2 || direction == 6 || direction == 8)
-            {
-                int diagId = t_cells.at(n_row + (n_col * 20)).m_id;
-                t_cells.at(t_current).m_diagonalList.push_back(t_cells.at(n_row + (n_col * 20)).m_id);
-            }
+		}
+	}
 
-        }
-    }
 }
 
-void Grid::reset()
+void Grid::setupGrid()
 {
-    for (int i = 0; i < m_cellsArray.size(); i++)
-    {
-        m_cellsArray.at(i).setMarked(false);
-        m_cellsArray.at(i).setPrevious(nullptr);
-    }
+	int j = 0;
+	sf::Vector2f position{ 0.0f,0.f };
+	for (int i = 0; i < MAX_CELLS; i++)
+	{
+		Cell cell;
+		cell.setupCellRect();
+		cell.setPos(position);
+		position.x += cell.getCellRect().getSize().x;
+		if (position.x == 1500)
+		{
+			position.y += cell.getCellRect().getSize().y;
+			position.x = 0;
+		}
+		gridVector.push_back(cell);
+		gridVector.at(i).setID(j);
+		j++;
+	}
 
-    for (int i = 0; i < 200; i++)
-    {
-        optimalRouteShape[i].setSize(sf::Vector2f(70, 45));
-        optimalRouteShape[i].setFillColor(sf::Color::Magenta);
-    }
-
-    for (int i = 0; i < m_cellsArray.size(); i++)
-    {
-        m_cellsArray.at(i).m_isPassable = true;
-    }
-
+	int i = 0;
 }
-
-
-
-void Grid::update(float dt)
-{
-   
-}
-
-
 
 void Grid::render(sf::RenderWindow& t_window)
 {
-    for (int index = 0; index < m_cellsArray.size(); index++)
-    {
-        m_cellsArray.at(index).render(t_window);
-        t_window.draw(m_cellId[index]);
-
-    }
+	for (int i = 0; i < MAX_CELLS; i++)
+	{
+		t_window.draw(gridVector.at(i).getCellRect());
+	}
 
 }
 
-
-std::vector<Cell>& Grid::returnAllCells()
+void Grid::update(sf::Time& t_deltatime)
 {
-    return m_cellsArray;
+
 }

@@ -1,52 +1,47 @@
 #pragma once
-#include "SFML/Graphics.hpp"
 #include <iostream>
-#include <functional>
-#include <vector>
-#include <queue>
+#include "SFML/Graphics.hpp"
 
 class Cell
 {
+
+
+	sf::RectangleShape cellRect;
+	int ID = 0;
+	bool markedBool = false;
+	bool startPointSquare = false;
+	bool endPointSquare = false;
+
+
 public:
-	Cell();
-	~Cell();
-	Cell(sf::Vector2f t_position, int t_cellID);
+	//bool getEndPoint();
+	void setEndPoint(bool t_endPointSet);
+	void setStartPoint(bool t_startPointSet);
 
-	Cell* m_previous;
-	Cell* previous() const;
-
-	std::vector<int> m_diagonalList;
-
-	int weight() const;
-	int m_id = 0;
-	int m_previousCellId{ -1 };
-	int m_centreX = 0;
-	int m_centreY = 0;
-	int m_h;
-	int m_pathCost;
-	int returnID() const
-	{
-		return m_id;
-	}
-
-	short weights = 100;
-	short additionalWallWeight = 200;
-	short additionalPuddleWeight = 2;
-	short additionalFenceWeight = 3;
-
-	bool m_marked = false;
-	bool m_isPassable = true;
-	bool isWallObject;
-	bool isPuddle;
-	bool isBarbed;
+	//bool getStartPoint();
+	//bool getMarked();
 	void setMarked(bool t_marked);
-	bool marked() const;
 
-	void setPrevious(Cell* previous);
-	void addNeighbours(int t_cellID);
-	void render(sf::RenderWindow& t_window);
+	void setStartColour();
+	void setEndColour();
 
-	sf::RectangleShape m_shape;
-	std::vector<int> m_neighbours;
+	int getID();
+
+
+	void setID(int t_id);
+
+	void setPos(sf::Vector2f t_position);
+
+	sf::RectangleShape getCellRect();
+	void setupCellRect();
+
+
+
+	int xPos;
+	int yPos;
+
+
+	std::vector<Cell*> m_neighbour;
+	void setNeighbours(Cell* t_neighbour);
 
 };
