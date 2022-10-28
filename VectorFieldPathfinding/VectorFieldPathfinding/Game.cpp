@@ -109,6 +109,8 @@ void Game::update(sf::Time t_deltaTime)
 	{
 		m_window.close();
 	}
+	float dt = t_deltaTime.asMilliseconds();
+	myGrid.update(float(dt));
 }
 
 /// <summary>

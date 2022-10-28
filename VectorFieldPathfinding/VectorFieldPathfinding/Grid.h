@@ -24,8 +24,8 @@ public:
 	sf::Text m_cellId[400];
 	//sf::Vector2f tempWallPosArray[400];
 
-	int m_maxRows = 20;
-	int m_maxCols = 20;
+	int m_maxRows = 50;
+	int m_maxCols = 50;
 	int m_currentRow;
 	int m_currentCol;
 
@@ -35,36 +35,11 @@ public:
 	//void initialiseMap(MazeGenerator& maze);
 	void update(float dt);
 	void render(sf::RenderWindow& t_window);
-	void aStar(Cell* start, Cell* dest);
 	//void placeImpassables(MazeGenerator& maze);
 	//void placeObstacles(MazeGenerator& maze);
 
 
 	//-------------Not Ideal the way its done below, should have passed on array of enemy objects----------------------
-	int i = 0;
-	int i2 = 0;
-	int i3 = 0;
-
-
-	std::stack<Cell*> reversedPath;
-	std::stack<Cell*> reversedPath2;
-	std::stack<Cell*> reversedPath3;
-
-	std::vector<Cell*> path;
-	std::vector<Cell*> path2;
-	std::vector<Cell*> path3;
-
-	bool wanderingAround = true;
-	bool wanderingAround2 = true;
-	bool wanderingAround3 = true;
-
-	bool playerCaught = false;
-	bool playerCaught2 = false;
-	bool playerCaught3 = false;
-
-	bool keepMoving = false;
-	bool keepMoving2 = false;
-	bool keepMoving3 = false;
 
 
 	std::vector<Cell>& returnAllCells();

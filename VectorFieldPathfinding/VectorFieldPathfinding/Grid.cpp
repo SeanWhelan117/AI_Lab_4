@@ -18,12 +18,6 @@ Grid::Grid()
         std::cout << "error with font file file";
     }
 
-    for (int i = 0; i < 200; i++)
-    {
-        optimalRouteShape[i].setSize(sf::Vector2f(70, 45));
-        optimalRouteShape[i].setFillColor(sf::Color::Magenta);
-    }
-
 }
 
 Grid::~Grid()
@@ -82,26 +76,6 @@ void Grid::reset()
         m_cellsArray.at(i).m_isPassable = true;
     }
 
-    while (!reversedPath.empty())
-    {
-        reversedPath.pop();
-
-    }
-
-    while (!reversedPath2.empty())
-    {
-        reversedPath2.pop();
-
-    }
-
-    while (!reversedPath3.empty())
-    {
-        reversedPath3.pop();
-    }
-
-    path.clear();
-    path2.clear();
-    path3.clear();
 }
 
 
@@ -120,11 +94,6 @@ void Grid::render(sf::RenderWindow& t_window)
         m_cellsArray.at(index).render(t_window);
         t_window.draw(m_cellId[index]);
 
-    }
-
-    for (int i = 0; i < 200; i++)
-    {
-        t_window.draw(optimalRouteShape[i]);
     }
 
 }
