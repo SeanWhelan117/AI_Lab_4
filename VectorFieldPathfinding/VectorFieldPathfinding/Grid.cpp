@@ -1,125 +1,469 @@
 #include "Grid.h"
 
-Cell* Grid::atIndex(int t_id)
+class AStarComparer
 {
-	int x = t_id % MAX_ROWS;
-	int y = t_id / MAX_COLS;
-	// does
-	int total = x + (y * MAX_COLS);
-	return 	&gridVector.at(total);
+public:
+	bool operator()(Cell* t_n1, Cell* t_n2) const
+	{
+		return (t_n1->hCost + t_n1->m_pathCost) > (t_n2->hCost + t_n2->m_pathCost);
+
+	}
+};
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//CELL  CELL  CELL  CELL  CELL  CELL  CELL  CELL  CELL  CELL  CELL  CELL  CELL  CELL  CELL  CELL  CELL  CELL  CELL  CELL  CELL  CELL  CELL  CELL  CELL  CELL  CELL  CELL  CELL  CELL
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+Cell::Cell()
+{
+
 }
 
+Cell::~Cell()
+{
+}
+
+Cell::Cell(sf::Vector2f t_position, int t_cellID, sf::Font& t_font)
+{
+	cellCost.setFont(t_font);
+	id = t_cellID;
+	cellShape.setSize(sf::Vector2f(750 / 50, 750 / 50));
+	cellShape.setFillColor(sf::Color::Transparent);
+	cellShape.setOutlineColor(sf::Color::White);
+	cellShape.setOutlineThickness(0.5);
+	cellShape.setPosition(t_position);
+	isPassableBool = true;
+	previousCellid = -1;
+}
+
+Cell* Cell::previous() const
+{
+	return previousCell;
+}
+
+int Cell::weight() const
+{
+	return 1;
+}
+
+bool Cell::getMarked() const
+{
+	return markedBool;
+}
+
+void Cell::setMarked(bool t_markedBool)
+{
+	markedBool = t_markedBool;
+}
+
+void Cell::render(sf::RenderWindow& t_window)
+{
+	t_window.draw(cellShape);
+	if (drawCost == true)
+	{
+		t_window.draw(cellCost);
+	}
+}
+
+void Cell::addCost(int m_cost)
+{
+	theCost = m_cost;
+
+	if (theCost != -1)
+	{
+		cellCost.setPosition(cellShape.getPosition());
+		cellCost.setCharacterSize(10U);
+		cellCost.setString(std::to_string(m_cost));
+
+		showCostBool = true;
+	}
+	else
+	{
+		showCostBool = false;
+	}
+}
+
+void Cell::addNeighbour(int t_cellID) // adding a cell id to the neighbours
+{
+	neighbours.push_back(t_cellID);
+}
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//GRID  GRID  GRID  GRID  GRID  GRID  GRID  GRID  GRID  GRID  GRID  GRID  GRID  GRID  GRID  GRID  GRID  GRID  GRID  GRID  GRID  GRID  GRID  GRID  GRID  GRID  GRID  GRID  GRID  GRID
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 Grid::Grid()
 {
-	setupGrid();
-	Cell theCell;
-	theCell.setID(901);
-	theCell.setStartColour();
-	setNeighbours(&theCell);
-
-	int i = 0;
+	initialiseMap();
 }
 
 Grid::~Grid()
 {
 }
 
-void Grid::setNeighbours(Cell* t_cell)
+Cell& Grid::returnCell(int t_id)
 {
-	int row = t_cell->xPos;
-	int col = t_cell->yPos;
+	return cellsArray.at(t_id);
+}
 
+void Grid::neighbours(int t_row, int t_col, std::vector<Cell>& t_cells, int t_currentCell)
+{
+	// List all neighbors:
+	//9 directions. 4 is the currentCell
 	for (int direction = 0; direction < 9; direction++) {
-		if (direction == 4) continue;
+		if (direction == 4) continue; 
 
-		int n_row = row + ((direction % 3) - 1); // Neighbor row
-		int n_col = col + ((direction / 3) - 1); // Neighbor column
+		//t_row and t_col for neighbour
+		int rowNum = t_row + ((direction % 3) - 1); 
+		int colNum = t_col + ((direction / 3) - 1);
+
+		//std::cout << "t_row is --" << t_row << "  t_col is -- " << t_col << std::endl;
 
 		// Check the bounds:
-		if (n_row >= 0 && n_row < MAX_ROWS && n_col >= 0 && n_col < MAX_COLS) {
+		if (rowNum >= 0 && rowNum < maxRows && colNum >= 0 && colNum < maxCols) {
 
-			int id = n_row + (n_col * 50);
-			t_cell->setNeighbours(atIndex(id));
-			//std::cout <<"ID"<<id<< " Neighbor: " << n_row << "," << n_col << ": " << std::endl;		
+			// A valid neighbor:
+			t_cells.at(t_currentCell).addNeighbour(rowNum + (colNum * 50));
+			// add the cell id 
+			if (direction == 0 || direction == 2 || direction == 6 || direction == 8)
+			{
+				int diagonalID = t_cells.at(rowNum + (colNum * 50)).id;
+				t_cells.at(t_currentCell).diagonalList.push_back(t_cells.at(rowNum + (colNum * 50)).id);
+			}
 		}
 	}
-
-
-
 }
 
-void Grid::selectStartEndPositions(sf::RenderWindow& t_window)
+void Grid::reset()
 {
-	const  sf::RenderWindow& m_window = t_window;
-	sf::Vector2f mousePosition = sf::Vector2f{ sf::Mouse::getPosition(m_window) };
 
-
-	for (int i = 0; i < MAX_CELLS; i++)
+	for (int i = 0; i < cellsArray.size(); i++)
 	{
-		if (gridVector.at(i).getCellRect().getGlobalBounds().contains(mousePosition))
-		{
-			if (startPositionFoundBool == false)
-			{
-				// for the start position  for the algorithim
-				if (sf::Mouse::isButtonPressed(sf::Mouse::Left))
-				{
-					cout << std::to_string(gridVector.at(i).getID()) << endl;
-					gridVector.at(i).setStartColour();
-					gridVector.at(i).setStartPoint(true);
-					startPositionFoundBool = true;
-				}
-			}
-
-			if (endPositionFoundBool == false)
-			{
-				// for the start position  for the algorithim
-				if (sf::Mouse::isButtonPressed(sf::Mouse::Right))
-				{
-					cout << std::to_string(gridVector.at(i).getID()) << endl;
-					gridVector.at(i).setEndColour();
-					gridVector.at(i).setEndPoint(true);
-					endPositionFoundBool = true;
-				}
-			}
-
-		}
+		cellsArray.at(i).setMarked(false);
+		cellsArray.at(i).setPrevious(nullptr);
 	}
 
 }
 
-void Grid::setupGrid()
+void Grid::initialiseMap()
 {
-	int j = 0;
-	sf::Vector2f position{ 0.0f,0.f };
-	for (int i = 0; i < MAX_CELLS; i++)
+	srand(time(NULL));
+
+	if (!m_font.loadFromFile("Assets/Fonts/ariblk.ttf"))
 	{
-		Cell cell;
-		cell.setupCellRect();
-		cell.setPos(position);
-		position.x += cell.getCellRect().getSize().x;
-		if (position.x == 1500)
-		{
-			position.y += cell.getCellRect().getSize().y;
-			position.x = 0;
-		}
-		gridVector.push_back(cell);
-		gridVector.at(i).setID(j);
-		j++;
+		std::cout << "error loading font file for the font in Grid.cpp... file called ariblk.ttf";
+
 	}
 
+	sf::Vector2f cellPos{ 0,0 };
+	int count = 0;
+	for (int row = 0; row < maxRows; row++)
+	{
+
+		for (int i = 0; i < maxCols; i++)
+		{
+			Cell cell(cellPos, count, m_font);
+
+			cellPos.x += sizeOfScreen / 50; // adjusting cell position on screen - x axis
+			if (cellPos.x >= sizeOfScreen)
+			{
+				cellPos.x = 0;
+				cellPos.y += sizeOfScreen / 50; // adjusting cell position on screen - y axis
+			}
+
+			count++;
+			cellsArray.push_back(cell);// pushing back the cell
+		}
+	}
+	int p = 0;
+
+
+	for (int index = 0; index < notTraversableNum; index++)
+	{
+		randomCellId = rand() % 2500;
+		notTraversable[index].setSize(sf::Vector2f(sizeOfGridCell, sizeOfGridCell));
+		notTraversable[index].setFillColor(sf::Color::Red);
+		notTraversable[index].setPosition((cellsArray.at(randomCellId).cellShape.getPosition()));
+		cellsArray.at(randomCellId).setMarked(true);
+	}
+
+
+	for (int i = 0; i < 2500; i++) // 40 * 40 = 1600
+	{
+		int xPos = i % 50;
+		int yPos = i / 50;
+		neighbours(xPos, yPos, cellsArray, i);
+	}
+	cellsArray.size();
 	int i = 0;
+	int h = 0;
 }
 
-void Grid::render(sf::RenderWindow& t_window)
+void Grid::update(sf::RenderWindow& t_window) // update method
 {
-	for (int i = 0; i < MAX_CELLS; i++)
+	startPosCreate(t_window);
+	endPosCreate(t_window);
+}
+
+void Grid::startPosCreate(sf::RenderWindow& t_window)
+{
+		if (sf::Mouse::isButtonPressed(sf::Mouse::Left) && startPosSelected == false)
+		{
+			sf::Vector2f translateMousePos = sf::Vector2f{ sf::Mouse::getPosition(t_window) };
+
+			int xPos = translateMousePos.x / sizeOfGridCell;
+			int yPos = translateMousePos.y / sizeOfGridCell;
+
+			float id = yPos * 50;
+			id += xPos;
+			if (cellsArray.at(id).getMarked() == false)
+			{
+				cellsArray.at(id).cellShape.setFillColor(sf::Color::Yellow);
+				startPosSelected = true;
+				startPointId = id;
+			}
+		}
+}
+
+void Grid::endPosCreate(sf::RenderWindow& t_window)
+{
+	if (sf::Mouse::isButtonPressed(sf::Mouse::Right) && endPosSelected == false)
 	{
-		t_window.draw(gridVector.at(i).getCellRect());
+		sf::Vector2f translateMousePos = sf::Vector2f{ sf::Mouse::getPosition(t_window) };
+		int xPos = translateMousePos.x / sizeOfGridCell; 
+		int yPos = translateMousePos.y / sizeOfGridCell;
+		float id = yPos * 50;
+		id += xPos;
+		if (cellsArray.at(id).getMarked() == false)
+		{
+			cellsArray.at(id).cellShape.setFillColor(sf::Color::Blue);
+			endPosSelected = true;
+			endPointId = id;
+			for (int i = 0; i < 2500; i++) // 40 * 40 = 1600
+			{
+				cellsArray[i].drawCost = true;
+			}
+			costCalculation();
+			notTraversableCost();
+		}
+	}
+}
+
+void Grid::costCalculation()
+{
+	if (cellsArray.at(endPointId).getMarked() == false)
+	{
+		int cost = 0;
+		cellsArray[endPointId].addCost(cost);
+		horizontalCells(endPointId, +1, cost);
+		horizontalCells(endPointId, -1, cost);
+		verticalCells(endPointId, 50, cost);
+		verticalCells(endPointId, -50, cost);
+
+		setCellCost(endPointId, -50, -1, cost);
+		setCellCost(endPointId, -50, +1, cost);
+		setCellCost(endPointId, +50, -1, cost);
+		setCellCost(endPointId, +50, +1, cost);
+	}
+}
+
+void Grid::verticalCells(int t_point, int t_row, int t_cost)
+{
+	int point = t_point;
+	int cost = t_cost;
+	while (point >= 0 && point < 2500)
+	{
+		cellsArray[point].addCost(cost);
+		point += t_row;
+		cost++;
 	}
 
 }
 
-void Grid::update(sf::Time& t_deltatime)
+void Grid::horizontalCells(int t_point, int t_col, int t_cost)
 {
+	int point = t_point + t_col;
+	int cost = t_cost + 1;
 
+	if (t_col > 0)
+	{
+		while (point % 50 <= 50 - 1 && point % 50 != 0)
+		{
+			cellsArray[point].addCost(cost);
+			point += t_col;
+			cost++;
+		}
+	}
+	else if (t_col < 0)
+	{
+		while (point % 50 != 50 - 1 && point % 50 >= 0)
+		{
+			cellsArray[point].addCost(cost);
+			point += t_col;
+			cost++;
+		}
+	}
 }
+
+void Grid::setCellCost(int t_p, int t_col, int t_cal, int t_cost)
+{
+	int pColCalSum = t_p + t_col + t_cal;
+	if (pColCalSum > 0 && pColCalSum < 2500 && t_p % 50 == 0)
+	{
+		cellsArray[pColCalSum].addCost(t_cost + 1);
+		verticalCells(pColCalSum, t_col, t_cost + 1);
+		verticalCells(pColCalSum, t_col, t_cost + 1);
+	}
+	else if (pColCalSum > 0 && pColCalSum < 2500 && t_p % 50 >= 50 - 1)
+	{
+		cellsArray[pColCalSum].addCost(t_cost + 1);
+		verticalCells(pColCalSum, t_col, t_cost + 1);
+		verticalCells(pColCalSum, t_col, t_cost + 1);
+	}
+	else if (pColCalSum >= 0 && pColCalSum < 2500)
+	{
+		cellsArray[pColCalSum].addCost(t_cost);
+		setCellCost(pColCalSum, t_col, t_cal, t_cost + 1);
+		verticalCells(pColCalSum, t_col, t_cost + 1);
+		verticalCells(pColCalSum, t_col, t_cost + 1);
+		horizontalCells(pColCalSum, t_cal, t_cost + 1);
+	}
+}
+
+void Grid::notTraversableCost()
+{
+	for (int i = 0; i < 2500; i++)
+	{
+		if (cellsArray[i].getMarked() == true) {
+
+			cellsArray[i].addCost(10000);
+			cellsArray[i].drawCost = false;
+		}
+
+	}
+}
+std::vector<Cell>& Grid::returnAllCells() // returning all the cells
+{
+	return cellsArray;
+}
+
+Cell* Grid::findCellPoint(sf::Vector2f point)
+{
+	for (int i = 0; i < cellsArray.size(); i++)
+	{
+		if (cellsArray.at(i).cellShape.getGlobalBounds().contains(point))
+		{
+			return &cellsArray.at(i);
+		}
+	}
+	return nullptr;
+}
+
+void Grid::render(sf::RenderWindow& t_window) // rendering the grid
+{
+	for (int index = 0; index < notTraversableNum; index++)
+	{
+		t_window.draw(notTraversable[index]);
+	}
+	for (int index = 0; index < 2500; index++)
+	{
+		cellsArray.at(index).render(t_window);
+		//t_window.draw(m_cellsArray.at(index).m_cellcost);
+		//t_window.draw(m_cellId[index]);
+	}
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//A*  A*  A*  A*  A*  A*  A*  A*  A*  A*  A*  A*  A*  A*  A*  A*  A*  A*  A*  A*  A*  A*  A*  A*  A*  A*  A*  A*  A*  A*  A*  A*  A*  A*  A*  A*  A*  A*  A*
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+void Grid::aStar(Cell* start, Cell* dest)
+{
+	Cell* s = start; // s start node
+	Cell* goal = dest; //g goal node
+	std::priority_queue<Cell*, std::vector<Cell*>, AStarComparer > pq; //pq = new priority queue
+
+	int dist = std::numeric_limits<int>::max();    // Initialise dist[v] to infinity
+
+	//for each node v in graph G
+	for (int i = 0; i < cellsArray.size(); i++)
+	{
+		int xOne = cellsArray[i].m_centreX;
+		int yOne = cellsArray[i].m_centreY;
+
+		int xTwo = goal->m_centreX;
+		int yTwo = goal->m_centreY;
+
+		cellsArray[i].hCost = abs(xTwo - xOne) + abs(yTwo - yOne);  //Calculate h[v]
+
+		cellsArray[i].m_pathCost = dist / 10;  //Initialise g[v] to infinity
+		cellsArray[i].setPrevious(nullptr);
+		cellsArray[i].setMarked(false);
+	}
+
+	if (goal != nullptr && start != nullptr)
+	{
+		start->m_pathCost = 0; //Initialise g[start] to 0
+		start->setMarked(true); //Mark(start)
+		pq.push(start); //Add start to pq
+
+		while (pq.size() != 0 && pq.top() != goal) //While the queue is not empty AND pq.top() != g
+		{
+			auto iter = pq.top()->neighbours.begin();
+			auto endIter = pq.top()->neighbours.end();
+
+			for (; iter != endIter; iter++) //For each child node of pq.top()
+			{
+				Cell* mychild = &returnAllCells().at(*iter);
+				//std::cout << "Visiting: " << mychild->m_id << std::endl;
+
+				if (mychild != pq.top()->previous()) //If (child !=previous(pq.top())
+				{
+					float weightOfArc = 0;
+					float distToChild = 0;
+
+					for (int diagId : mychild->diagonalList)
+					{
+						if (diagId == pq.top()->id)
+						{
+							weightOfArc = 1.44;
+						}
+					}
+
+					if (weightOfArc == 0)
+					{
+						weightOfArc = mychild->weight(); //g(child)
+
+					}
+
+					if (mychild->m_isPuddle == true)
+					{
+						weightOfArc = 1.5f;//Add child to the pq
+					}
+					if (mychild->m_isWall == true)
+					{
+						weightOfArc = 10.0f;//Add child to the pq
+					}
+					distToChild = (weightOfArc + pq.top()->m_pathCost);
+
+					if (distToChild < mychild->m_pathCost) //If ( distToChild < f(child) )
+					{
+						mychild->m_pathCost = distToChild; //let f[child] = distToChild
+						mychild->setPrevious(pq.top()); //Set previous pointer of child to pq.top()
+					} //End if
+					if (mychild->getMarked() == false) //If (notMarked(child))
+					{
+						//pq.push(mychild);//Add child to the pq
+						if (mychild->isPassableBool == true)
+						{
+							pq.push(mychild);//Add child to the pq
+						}
+						mychild->setMarked(true); //Mark Child
+					} //end if
+				}
+			}//end for
+			pq.pop();
+		} //end while
+	}
+}
+

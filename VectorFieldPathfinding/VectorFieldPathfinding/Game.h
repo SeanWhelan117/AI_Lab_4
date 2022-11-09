@@ -11,7 +11,6 @@
 /// </summary>
 #include <SFML/Graphics.hpp>
 #include "Grid.h"
-#include "Cell.h"
 
 class Game
 {

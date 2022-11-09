@@ -15,7 +15,7 @@
 /// load and setup thne image
 /// </summary>
 Game::Game() :
-	m_window{ sf::VideoMode{ 1000, 1000 }, "VectorFieldPathfinding" },
+	m_window{ sf::VideoMode{ 750, 750 }, "VectorFieldPathfinding" },
 	m_exitGame{false} //when true game will exit
 {
 }
@@ -99,10 +99,8 @@ void Game::update(sf::Time t_deltaTime)
 	{
 		m_window.close();
 	}
-	myGrid.update(t_deltaTime);
+	myGrid.update(m_window);
 
-
-	myGrid.selectStartEndPositions(m_window);
 }
 
 /// <summary>
@@ -110,7 +108,8 @@ void Game::update(sf::Time t_deltaTime)
 /// </summary>
 void Game::render()
 {
-	m_window.clear(sf::Color::White);
+	m_window.clear(sf::Color::Black);
+
 	myGrid.render(m_window);
 	m_window.display();
 }
