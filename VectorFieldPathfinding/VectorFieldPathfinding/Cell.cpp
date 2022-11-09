@@ -74,7 +74,7 @@ void Cell::setupCellRect()
     cellRect.setFillColor(sf::Color::Transparent);
     cellRect.setOutlineColor(sf::Color::Cyan);
     cellRect.setOutlineThickness(1.5f);
-    cellRect.setSize(sf::Vector2f{ 1500 / 50,1500 / 50 });
+    cellRect.setSize(sf::Vector2f{20, 20}); //1000 / 50, 1000 / 50
 }
 
 void Cell::setNeighbours(Cell* t_neighbour)

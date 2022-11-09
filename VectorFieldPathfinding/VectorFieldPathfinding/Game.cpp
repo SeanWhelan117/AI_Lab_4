@@ -15,7 +15,7 @@
 /// load and setup thne image
 /// </summary>
 Game::Game() :
-	m_window{ sf::VideoMode{ 1500, 1500 }, "VectorFieldPathfinding" },
+	m_window{ sf::VideoMode{ 1000, 1000 }, "VectorFieldPathfinding" },
 	m_exitGame{false} //when true game will exit
 {
 }
