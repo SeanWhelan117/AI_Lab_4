@@ -55,6 +55,7 @@ public:
 
 	std::vector<int> neighbours;
 
+	int getCost();
 };
 
 class Grid
@@ -64,6 +65,10 @@ public:
 	~Grid();
 	int notTraversableNum = 200;
 	sf::RectangleShape notTraversable[200];
+	
+	sf::RectangleShape pathItTakes[200];
+	std::vector<int> pathFound;
+
 	Cell& returnCell(int t_id);
 
 	bool startPosSelected;
@@ -74,14 +79,15 @@ public:
 	void reset();
 	void initialiseMap();
 	void update(sf::RenderWindow& t_window);
-	void startPosCreate(sf::RenderWindow& t_window);
-	void endPosCreate(sf::RenderWindow& t_window);
+	int startPosCreate(sf::RenderWindow& t_window);
+	int endPosCreate(sf::RenderWindow& t_window);
 	void costCalculation();
 	void verticalCells(int t_point, int t_row, int t_cost);
 	void horizontalCells(int t_point, int t_col, int t_cost);
 	void setCellCost(int t_p, int t_col, int t_cal, int t_cost);
 	void notTraversableCost();
 	void render(sf::RenderWindow& t_window);
+	void callAstar(int t_start, int t_end);
 	void aStar(Cell* start, Cell* dest);
 	Cell* findCellPoint(sf::Vector2f point);
 
@@ -101,5 +107,6 @@ public:
 
 	int sizeOfScreen = 750;
 	int sizeOfGridCell = 15;
+	int maxCells = 2500;
 };
 

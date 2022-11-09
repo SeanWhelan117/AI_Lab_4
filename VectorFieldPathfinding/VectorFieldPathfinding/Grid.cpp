@@ -5,7 +5,7 @@ class AStarComparer
 public:
 	bool operator()(Cell* t_n1, Cell* t_n2) const
 	{
-		return (t_n1->hCost + t_n1->m_pathCost) > (t_n2->hCost + t_n2->m_pathCost);
+		return (t_n1->getCost() + t_n1->theCost) > (t_n2->getCost() + t_n2->theCost);
 
 	}
 };
@@ -49,6 +49,11 @@ int Cell::weight() const
 bool Cell::getMarked() const
 {
 	return markedBool;
+}
+
+int Cell::getCost()
+{
+	return theCost;
 }
 
 void Cell::setMarked(bool t_markedBool)
@@ -179,15 +184,19 @@ void Grid::initialiseMap()
 
 	for (int index = 0; index < notTraversableNum; index++)
 	{
-		randomCellId = rand() % 2500;
+		randomCellId = rand() % maxCells;
 		notTraversable[index].setSize(sf::Vector2f(sizeOfGridCell, sizeOfGridCell));
 		notTraversable[index].setFillColor(sf::Color::Red);
+		
+		pathItTakes[index].setSize(sf::Vector2f(sizeOfGridCell, sizeOfGridCell));
+		pathItTakes[index].setFillColor(sf::Color::Green);
+
 		notTraversable[index].setPosition((cellsArray.at(randomCellId).cellShape.getPosition()));
 		cellsArray.at(randomCellId).setMarked(true);
 	}
 
 
-	for (int i = 0; i < 2500; i++) // 40 * 40 = 1600
+	for (int i = 0; i < maxCells; i++) // 40 * 40 = 1600
 	{
 		int xPos = i % 50;
 		int yPos = i / 50;
@@ -204,7 +213,22 @@ void Grid::update(sf::RenderWindow& t_window) // update method
 	endPosCreate(t_window);
 }
 
-void Grid::startPosCreate(sf::RenderWindow& t_window)
+void Grid::render(sf::RenderWindow& t_window) // rendering the grid
+{
+	for (int i = 0; i < notTraversableNum; i++)
+	{
+		t_window.draw(notTraversable[i]);
+		t_window.draw(pathItTakes[i]);
+	}
+	for (int index = 0; index < maxCells; index++)
+	{
+		cellsArray.at(index).render(t_window);
+		//t_window.draw(m_cellsArray.at(index).m_cellcost);
+		//t_window.draw(m_cellId[index]);
+	}
+}
+
+int Grid::startPosCreate(sf::RenderWindow& t_window)
 {
 		if (sf::Mouse::isButtonPressed(sf::Mouse::Left) && startPosSelected == false)
 		{
@@ -220,11 +244,12 @@ void Grid::startPosCreate(sf::RenderWindow& t_window)
 				cellsArray.at(id).cellShape.setFillColor(sf::Color::Yellow);
 				startPosSelected = true;
 				startPointId = id;
+				return startPointId;
 			}
 		}
 }
 
-void Grid::endPosCreate(sf::RenderWindow& t_window)
+int Grid::endPosCreate(sf::RenderWindow& t_window)
 {
 	if (sf::Mouse::isButtonPressed(sf::Mouse::Right) && endPosSelected == false)
 	{
@@ -238,13 +263,17 @@ void Grid::endPosCreate(sf::RenderWindow& t_window)
 			cellsArray.at(id).cellShape.setFillColor(sf::Color::Blue);
 			endPosSelected = true;
 			endPointId = id;
-			for (int i = 0; i < 2500; i++) // 40 * 40 = 1600
+			for (int i = 0; i < maxCells; i++) // 40 * 40 = 1600
 			{
 				cellsArray[i].drawCost = true;
+				cellsArray[i].isPassableBool = true;
 			}
 			costCalculation();
 			notTraversableCost();
+			callAstar(startPointId, endPointId);
+			return endPointId;
 		}
+		
 	}
 }
 
@@ -270,7 +299,7 @@ void Grid::verticalCells(int t_point, int t_row, int t_cost)
 {
 	int point = t_point;
 	int cost = t_cost;
-	while (point >= 0 && point < 2500)
+	while (point >= 0 && point < maxCells)
 	{
 		cellsArray[point].addCost(cost);
 		point += t_row;
@@ -307,19 +336,19 @@ void Grid::horizontalCells(int t_point, int t_col, int t_cost)
 void Grid::setCellCost(int t_p, int t_col, int t_cal, int t_cost)
 {
 	int pColCalSum = t_p + t_col + t_cal;
-	if (pColCalSum > 0 && pColCalSum < 2500 && t_p % 50 == 0)
+	if (pColCalSum > 0 && pColCalSum < maxCells && t_p % 50 == 0)
 	{
 		cellsArray[pColCalSum].addCost(t_cost + 1);
 		verticalCells(pColCalSum, t_col, t_cost + 1);
 		verticalCells(pColCalSum, t_col, t_cost + 1);
 	}
-	else if (pColCalSum > 0 && pColCalSum < 2500 && t_p % 50 >= 50 - 1)
+	else if (pColCalSum > 0 && pColCalSum < maxCells && t_p % 50 >= 50 - 1)
 	{
 		cellsArray[pColCalSum].addCost(t_cost + 1);
 		verticalCells(pColCalSum, t_col, t_cost + 1);
 		verticalCells(pColCalSum, t_col, t_cost + 1);
 	}
-	else if (pColCalSum >= 0 && pColCalSum < 2500)
+	else if (pColCalSum >= 0 && pColCalSum < maxCells)
 	{
 		cellsArray[pColCalSum].addCost(t_cost);
 		setCellCost(pColCalSum, t_col, t_cal, t_cost + 1);
@@ -331,14 +360,15 @@ void Grid::setCellCost(int t_p, int t_col, int t_cal, int t_cost)
 
 void Grid::notTraversableCost()
 {
-	for (int i = 0; i < 2500; i++)
+	for (int i = 0; i < maxCells; i++)
 	{
 		if (cellsArray[i].getMarked() == true) {
 
 			cellsArray[i].addCost(10000);
 			cellsArray[i].drawCost = false;
+			cellsArray[i].isPassableBool = false;
+			cellsArray[i].cellShape.setFillColor(sf::Color::Red);
 		}
-
 	}
 }
 std::vector<Cell>& Grid::returnAllCells() // returning all the cells
@@ -358,17 +388,30 @@ Cell* Grid::findCellPoint(sf::Vector2f point)
 	return nullptr;
 }
 
-void Grid::render(sf::RenderWindow& t_window) // rendering the grid
+void Grid::callAstar(int t_start, int t_end)
 {
-	for (int index = 0; index < notTraversableNum; index++)
+	Cell* start;
+	Cell* end;
+	start = &returnCell(t_start);
+	end = &returnCell(t_end);
+	aStar(start, end);
+
+	int i = 0;
+	int index = end->id;
+
+	pathItTakes[i].setPosition(cellsArray.at(index).cellShape.getPosition());
+	if (pathFound.empty() == true)
 	{
-		t_window.draw(notTraversable[index]);
-	}
-	for (int index = 0; index < 2500; index++)
-	{
-		cellsArray.at(index).render(t_window);
-		//t_window.draw(m_cellsArray.at(index).m_cellcost);
-		//t_window.draw(m_cellId[index]);
+		pathFound.push_back(index);
+		while (cellsArray.at(index).previousCell != nullptr)
+		{
+			//std::cout << m_cellsArray.at(index).m_previous->m_id << std::endl;
+
+			pathFound.push_back(cellsArray.at(index).previousCell->id);
+			pathItTakes[i].setPosition(cellsArray.at(index).cellShape.getPosition());
+			index = cellsArray.at(index).previousCell->id;
+			i++;
+		}
 	}
 }
 
@@ -394,16 +437,16 @@ void Grid::aStar(Cell* start, Cell* dest)
 		int xTwo = goal->m_centreX;
 		int yTwo = goal->m_centreY;
 
-		cellsArray[i].hCost = abs(xTwo - xOne) + abs(yTwo - yOne);  //Calculate h[v]
+		//m_cellsArray[i].m_h = abs(xTwo - xOne) + abs(yTwo - yOne);  //Calculate h[v]
 
-		cellsArray[i].m_pathCost = dist / 10;  //Initialise g[v] to infinity
+		cellsArray[i].theCost = dist / 10;  //Initialise g[v] to infinity
 		cellsArray[i].setPrevious(nullptr);
 		cellsArray[i].setMarked(false);
 	}
 
 	if (goal != nullptr && start != nullptr)
 	{
-		start->m_pathCost = 0; //Initialise g[start] to 0
+		start->theCost = 0; //Initialise g[start] to 0
 		start->setMarked(true); //Mark(start)
 		pq.push(start); //Add start to pq
 
@@ -422,34 +465,21 @@ void Grid::aStar(Cell* start, Cell* dest)
 					float weightOfArc = 0;
 					float distToChild = 0;
 
-					for (int diagId : mychild->diagonalList)
-					{
-						if (diagId == pq.top()->id)
-						{
-							weightOfArc = 1.44;
-						}
-					}
+					weightOfArc = mychild->weight(); //g(child)
 
-					if (weightOfArc == 0)
-					{
-						weightOfArc = mychild->weight(); //g(child)
+					distToChild = (weightOfArc + pq.top()->theCost);
 
-					}
-
-					if (mychild->m_isPuddle == true)
+					if (distToChild < mychild->theCost && mychild->isPassableBool == true) //If ( distToChild < f(child) )
 					{
-						weightOfArc = 1.5f;//Add child to the pq
-					}
-					if (mychild->m_isWall == true)
-					{
-						weightOfArc = 10.0f;//Add child to the pq
-					}
-					distToChild = (weightOfArc + pq.top()->m_pathCost);
-
-					if (distToChild < mychild->m_pathCost) //If ( distToChild < f(child) )
-					{
-						mychild->m_pathCost = distToChild; //let f[child] = distToChild
+						mychild->theCost = distToChild; //let f[child] = distToChild
 						mychild->setPrevious(pq.top()); //Set previous pointer of child to pq.top()
+						//mychild->m_shape.setFillColor(sf::Color::Red);						//uncomment to see how it expands
+
+						if (mychild == goal)
+						{
+							std::cout << "uh oh we got it" << std::endl;
+						}
+
 					} //End if
 					if (mychild->getMarked() == false) //If (notMarked(child))
 					{
@@ -459,8 +489,10 @@ void Grid::aStar(Cell* start, Cell* dest)
 							pq.push(mychild);//Add child to the pq
 						}
 						mychild->setMarked(true); //Mark Child
+
 					} //end if
 				}
+
 			}//end for
 			pq.pop();
 		} //end while
