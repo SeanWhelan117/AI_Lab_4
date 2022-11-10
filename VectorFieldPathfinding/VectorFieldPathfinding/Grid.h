@@ -57,6 +57,12 @@ public:
 	std::vector<int> neighbours;
 	bool pathBool = false;
 	int getCost();
+
+
+	sf::VertexArray vertex;
+	void setVectorDistance(sf::Vector2f t_endPos);
+
+
 };
 
 class Grid
@@ -111,5 +117,7 @@ public:
 	int sizeOfScreen = 750;
 	int sizeOfGridCell = 15;
 	int maxCells = 2500;
+
+	void generateVertexArrays();
 };
 
