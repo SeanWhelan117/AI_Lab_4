@@ -93,11 +93,11 @@ void Cell::addNeighbour(int t_cellID) // adding a cell id to the neighbours
 	neighbours.push_back(t_cellID);
 }
 
-void Cell::setColor(sf::Vector3f t_RGBValue)
+void Cell::setColor(sf::Vector3f t_colourValue)
 {
-	sf::Uint8 red = t_RGBValue.x;
-	sf::Uint8 green = t_RGBValue.y;
-	sf::Uint8 blue = t_RGBValue.z;
+	sf::Uint8 red = t_colourValue.x;
+	sf::Uint8 green = t_colourValue.y;
+	sf::Uint8 blue = t_colourValue.z;
 	cellShape.setFillColor(sf::Color{ red, green ,blue });
 }
 
@@ -194,7 +194,7 @@ void Grid::initialiseMap()
 	{
 		randomCellId = rand() % maxCells;
 		notTraversable[index].setSize(sf::Vector2f(sizeOfGridCell, sizeOfGridCell));
-		notTraversable[index].setFillColor(sf::Color::Red);
+		notTraversable[index].setFillColor(sf::Color::Blue);
 		
 		pathItTakes[index].setSize(sf::Vector2f(sizeOfGridCell, sizeOfGridCell));
 		pathItTakes[index].setFillColor(sf::Color::Green);
@@ -223,16 +223,17 @@ void Grid::update(sf::RenderWindow& t_window) // update method
 
 void Grid::render(sf::RenderWindow& t_window) // rendering the grid
 {
-	for (int i = 0; i < notTraversableNum; i++)
-	{
-		t_window.draw(notTraversable[i]);
-		t_window.draw(pathItTakes[i]);
-	}
 	for (int m = 0; m < maxCells; m++)
 	{
 		cellsArray.at(m).render(t_window);
 		//t_window.draw(m_cellsArray.at(index).m_cellcost);
 		//t_window.draw(m_cellId[index]);
+	}
+
+	for (int i = 0; i < notTraversableNum; i++)
+	{
+		t_window.draw(notTraversable[i]);
+		t_window.draw(pathItTakes[i]);
 	}
 }
 
@@ -278,8 +279,8 @@ int Grid::endPosCreate(sf::RenderWindow& t_window)
 			}
 			costCalculation();
 			notTraversableCost();
-			callAstar(startPointId, endPointId);
 			generateHeatMap();
+			callAstar(startPointId, endPointId);
 			return endPointId;
 		}
 		
@@ -399,18 +400,18 @@ Cell* Grid::findCellPoint(sf::Vector2f point)
 
 void Grid::generateHeatMap()
 {
-	float blueValue = 0.0f;
+	float redColour = 255;
 
-	for (int i = 0; i < maxCells; i++)
+	for (int i = 0; i < 2500; i++)
 	{
 		if (cellsArray.at(i).isPassableBool == true)
 		{
 			if (cellsArray.at(i).pathBool == false)
 			{
-				sf::Vector3f colourValue = { 0.0f, 0.0f, blueValue + (cellsArray.at(i).getCost() * 6) };
-				if (colourValue.z > 240)
+				sf::Vector3f colourValue = { redColour - (cellsArray.at(i).getCost() * 8),0.0f,0.0f };
+				if (colourValue.x < 100)
 				{
-					colourValue.z = 240;
+					colourValue.x = 100;
 				}
 				cellsArray.at(i).setColor(colourValue);
 			}
