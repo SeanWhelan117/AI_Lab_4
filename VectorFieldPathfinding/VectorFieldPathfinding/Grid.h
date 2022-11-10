@@ -41,6 +41,7 @@ public:
 	bool getMarked() const;
 	void setMarked(bool t_marked);
 	void addNeighbour(int t_cellID);
+	void setColor(sf::Vector3f t_RGBValue);
 	int returnID() const {
 		return id;
 	}
@@ -54,7 +55,7 @@ public:
 	sf::RectangleShape cellShape;
 
 	std::vector<int> neighbours;
-
+	bool pathBool = false;
 	int getCost();
 };
 
@@ -90,6 +91,8 @@ public:
 	void callAstar(int t_start, int t_end);
 	void aStar(Cell* start, Cell* dest);
 	Cell* findCellPoint(sf::Vector2f point);
+
+	void generateHeatMap();
 
 	std::vector<Cell>& returnAllCells();
 

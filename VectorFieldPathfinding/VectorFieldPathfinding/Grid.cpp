@@ -93,6 +93,14 @@ void Cell::addNeighbour(int t_cellID) // adding a cell id to the neighbours
 	neighbours.push_back(t_cellID);
 }
 
+void Cell::setColor(sf::Vector3f t_RGBValue)
+{
+	sf::Uint8 red = t_RGBValue.x;
+	sf::Uint8 green = t_RGBValue.y;
+	sf::Uint8 blue = t_RGBValue.z;
+	cellShape.setFillColor(sf::Color{ red, green ,blue });
+}
+
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //GRID  GRID  GRID  GRID  GRID  GRID  GRID  GRID  GRID  GRID  GRID  GRID  GRID  GRID  GRID  GRID  GRID  GRID  GRID  GRID  GRID  GRID  GRID  GRID  GRID  GRID  GRID  GRID  GRID  GRID
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -220,9 +228,9 @@ void Grid::render(sf::RenderWindow& t_window) // rendering the grid
 		t_window.draw(notTraversable[i]);
 		t_window.draw(pathItTakes[i]);
 	}
-	for (int index = 0; index < maxCells; index++)
+	for (int m = 0; m < maxCells; m++)
 	{
-		cellsArray.at(index).render(t_window);
+		cellsArray.at(m).render(t_window);
 		//t_window.draw(m_cellsArray.at(index).m_cellcost);
 		//t_window.draw(m_cellId[index]);
 	}
@@ -271,6 +279,7 @@ int Grid::endPosCreate(sf::RenderWindow& t_window)
 			costCalculation();
 			notTraversableCost();
 			callAstar(startPointId, endPointId);
+			generateHeatMap();
 			return endPointId;
 		}
 		
@@ -388,6 +397,28 @@ Cell* Grid::findCellPoint(sf::Vector2f point)
 	return nullptr;
 }
 
+void Grid::generateHeatMap()
+{
+	float blueValue = 0.0f;
+
+	for (int i = 0; i < maxCells; i++)
+	{
+		if (cellsArray.at(i).isPassableBool == true)
+		{
+			if (cellsArray.at(i).pathBool == false)
+			{
+				sf::Vector3f colourValue = { 0.0f, 0.0f, blueValue + (cellsArray.at(i).getCost() * 6) };
+				if (colourValue.z > 240)
+				{
+					colourValue.z = 240;
+				}
+				cellsArray.at(i).setColor(colourValue);
+			}
+		}
+	}
+}
+
+
 void Grid::callAstar(int t_start, int t_end)
 {
 	Cell* start;
@@ -406,9 +437,9 @@ void Grid::callAstar(int t_start, int t_end)
 		while (cellsArray.at(index).previousCell != nullptr)
 		{
 			//std::cout << m_cellsArray.at(index).m_previous->m_id << std::endl;
-
 			pathFound.push_back(cellsArray.at(index).previousCell->id);
 			pathItTakes[i].setPosition(cellsArray.at(index).cellShape.getPosition());
+			cellsArray[index].pathBool = true;
 			index = cellsArray.at(index).previousCell->id;
 			i++;
 		}
