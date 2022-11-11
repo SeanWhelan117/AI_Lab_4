@@ -18,6 +18,15 @@ Game::Game() :
 	m_window{ sf::VideoMode{ 750, 750 }, "VectorFieldPathfinding" },
 	m_exitGame{false} //when true game will exit
 {
+	std::cout << "Left Click to place startpoint" << std::endl;
+	std::cout << "Right Click to place endpoint" << std::endl;
+	std::cout << "-----------------------------------" << std::endl;
+	std::cout << "When Path is drawn:" << std::endl;
+	std::cout << "Number 1 to toggle cost off" << std::endl;
+	std::cout << "Number 2 to toggle cost on" << std::endl;
+	std::cout << "-----------------------------------" << std::endl;
+	std::cout << "Number 3 to toggle vectors off" << std::endl;
+	std::cout << "Number 4 to toggle vectors on" << std::endl;
 }
 
 /// <summary>

@@ -57,12 +57,11 @@ public:
 	std::vector<int> neighbours;
 	bool pathBool = false;
 	int getCost();
-
-
 	sf::VertexArray vertex;
-	void setVectorDistance(sf::Vector2f t_endPos);
+	sf::RectangleShape vectorLines;
 	void update();
 
+	bool drawVectors = false;
 };
 
 class Grid
@@ -101,6 +100,7 @@ public:
 	void generateHeatMap();
 
 	std::vector<Cell>& returnAllCells();
+	sf::Vector2f findEndPos(int t_findEndPos);
 
 	//sf::Text m_cellId[2501];
 	sf::Font m_font;

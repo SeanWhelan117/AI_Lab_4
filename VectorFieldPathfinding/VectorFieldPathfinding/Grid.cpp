@@ -35,11 +35,10 @@ Cell::Cell(sf::Vector2f t_position, int t_cellID, sf::Font& t_font)
 	isPassableBool = true;
 	previousCellid = -1;
 
-	sf::VertexArray v(sf::Lines, 2);
+	vectorLines.setSize(sf::Vector2f(2, 10));
+	vectorLines.setFillColor(sf::Color::Magenta);
+	vectorLines.setPosition(t_position.x + 11, t_position.y + 9);
 
-	v[0].color = sf::Color::Red;
-	v[1].color = sf::Color::White;
-	vertex = v;
 }
 
 Cell* Cell::previous() const
@@ -74,6 +73,11 @@ void Cell::render(sf::RenderWindow& t_window)
 	{
 		t_window.draw(cellCost);
 	}
+
+	if (drawVectors == true)
+	{
+		t_window.draw(vectorLines);
+	}
 }
 
 void Cell::update()
@@ -86,6 +90,16 @@ void Cell::update()
 	if (sf::Keyboard::isKeyPressed(sf::Keyboard::Num2) && drawCost == false)
 	{
 		drawCost = true;
+	}
+
+	if (sf::Keyboard::isKeyPressed(sf::Keyboard::Num3) && drawVectors == true)
+	{
+		drawVectors = false;
+	}
+
+	if (sf::Keyboard::isKeyPressed(sf::Keyboard::Num4) && drawVectors == false)
+	{
+		drawVectors = true;
 	}
 }
 
@@ -119,47 +133,6 @@ void Cell::setColor(sf::Vector3f t_colourValue)
 	sf::Uint8 blue = t_colourValue.z;
 	cellShape.setFillColor(sf::Color{ red, green ,blue });
 }
-
-void Cell::setVectorDistance(sf::Vector2f t_endPos)
-{
-	if (!m_isWall)
-	{
-		float lCost = std::numeric_limits<float>::max();
-
-		sf::Vector2f position = sf::Vector2f(cellShape.getPosition().x + 12.5f, cellShape.getPosition().y + 12.5f);
-		sf::Vector2f neighbourPosition;
-
-		vertex[0].position = position;
-
-
-		/*for (Cell* n : neighbours)
-		{*/
-		//for(int i = 0; i < neighbours.size(); i++)
-		//{
-
-		//	//float currentCost = neighbours.at(i).;
-		//	currentCost = 100;
-
-		//	neighbourPosition = sf::Vector2f(n->cellShape.getPosition().x + 12.5f, n->cellShape.getPosition().y + 12.5f);
-
-		//	sf::Vector2f v = (neighbourPosition - t_endPos);
-		//	float mag = (v.x * v.x) + (v.y * v.y);
-
-		//	currentCost += mag;
-
-		//	if (currentCost < lCost)
-		//	{
-		//		lCost = currentCost;
-		//		vertex[1].position = neighbourPosition;
-		//		setNextNode(n);
-		//	}
-		//}
-	}
-
-
-}
-
-
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //GRID  GRID  GRID  GRID  GRID  GRID  GRID  GRID  GRID  GRID  GRID  GRID  GRID  GRID  GRID  GRID  GRID  GRID  GRID  GRID  GRID  GRID  GRID  GRID  GRID  GRID  GRID  GRID  GRID  GRID
@@ -290,8 +263,7 @@ void Grid::render(sf::RenderWindow& t_window) // rendering the grid
 	for (int m = 0; m < maxCells; m++)
 	{
 		cellsArray.at(m).render(t_window);
-		//t_window.draw(m_cellsArray.at(index).m_cellcost);
-		//t_window.draw(m_cellId[index]);
+		
 	}
 
 	for (int i = 0; i < notTraversableNum; i++)
@@ -340,6 +312,17 @@ int Grid::endPosCreate(sf::RenderWindow& t_window)
 			{
 				cellsArray[i].drawCost = true;
 				cellsArray[i].isPassableBool = true;
+				
+				sf::Vector2f endPos = findEndPos(endPointId);
+
+				float dx = cellsArray[i].cellShape.getPosition().x - endPos.x;
+				float dy = cellsArray[i].cellShape.getPosition().y - endPos.y;
+				float rotation = (-atan2(dx, dy) * 180 / 3.14159);
+
+				cellsArray[i].vectorLines.setRotation(rotation);
+				cellsArray[i].drawVectors = true;
+
+
 			}
 			costCalculation();
 			notTraversableCost();
@@ -347,6 +330,14 @@ int Grid::endPosCreate(sf::RenderWindow& t_window)
 			callAstar(startPointId, endPointId);
 			return endPointId;
 		}
+	}
+}
+
+sf::Vector2f Grid::findEndPos(int t_endPointId)
+{
+	for (int i = 0; i < cellsArray.size(); i++)
+	{
+		return cellsArray.at(t_endPointId).cellShape.getPosition();
 	}
 }
 
@@ -441,6 +432,8 @@ void Grid::notTraversableCost()
 			cellsArray[i].drawCost = false;
 			cellsArray[i].isPassableBool = false;
 			cellsArray[i].cellShape.setFillColor(sf::Color::Red);
+			cellsArray[i].drawVectors = false;
+
 		}
 	}
 }
@@ -479,14 +472,6 @@ void Grid::generateHeatMap()
 				cellsArray.at(i).setColor(colourValue);
 			}
 		}
-	}
-}
-
-void Grid::generateVertexArrays()
-{
-	for (int i = 0; i < maxCells; i++)
-	{
-		//cellsArray[i].setVectorDistance(m_endNode->getPosition());
 	}
 }
 
@@ -580,7 +565,7 @@ void Grid::aStar(Cell* start, Cell* dest)
 
 						if (mychild == goal)
 						{
-							std::cout << "uh oh we got it" << std::endl;
+							//std::cout << "uh oh we got it" << std::endl;
 						}
 
 					} //End if
