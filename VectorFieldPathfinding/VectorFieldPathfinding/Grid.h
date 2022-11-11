@@ -98,6 +98,10 @@ public:
 	void aStar(Cell* start, Cell* dest);
 	Cell* findCellPoint(sf::Vector2f point);
 
+	void makePath();
+	void clearPath();
+	void movePlayer(std::stack<Cell*> t_path);
+
 	void generateHeatMap();
 
 	std::vector<Cell>& returnAllCells();
@@ -120,6 +124,13 @@ public:
 	int maxCells = 2500;
 	float PI = 3.14159;
 
+	sf::CircleShape myPlayer;
+
+	bool canPlayerMove = false;
+
 	void generateVertexArrays();
+
+	std::stack<Cell*> playerPath;
+	int m = 1;
 };
 

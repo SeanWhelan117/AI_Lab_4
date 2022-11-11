@@ -18,6 +18,10 @@ Game::Game() :
 	m_window{ sf::VideoMode{ 750, 750 }, "VectorFieldPathfinding" },
 	m_exitGame{false} //when true game will exit
 {
+	std::cout << "-_-_-_-_-HOW TO USE THE PROGRAM-_-_-_-_-" << std::endl;
+	std::cout << std::endl;
+	std::cout << std::endl;
+	std::cout << "-----------------------------------" << std::endl;
 	std::cout << "Left Click to place startpoint" << std::endl;
 	std::cout << "Right Click to place endpoint" << std::endl;
 	std::cout << "-----------------------------------" << std::endl;

@@ -200,6 +200,9 @@ void Grid::initialiseMap()
 
 	}
 
+	myPlayer.setFillColor(sf::Color::White);
+	myPlayer.setRadius(10.0f);
+
 	sf::Vector2f cellPos{ 0,0 };
 	int count = 0;
 	for (int row = 0; row < maxRows; row++)
@@ -226,14 +229,18 @@ void Grid::initialiseMap()
 	for (int index = 0; index < notTraversableNum; index++)
 	{
 		randomCellId = rand() % maxCells;
-		notTraversable[index].setSize(sf::Vector2f(sizeOfGridCell, sizeOfGridCell));
-		notTraversable[index].setFillColor(sf::Color::Blue);
-		
-		pathItTakes[index].setSize(sf::Vector2f(sizeOfGridCell, sizeOfGridCell));
-		pathItTakes[index].setFillColor(sf::Color::Green);
+		//notTraversable[index].setSize(sf::Vector2f(sizeOfGridCell, sizeOfGridCell));
+		//notTraversable[index].setFillColor(sf::Color::Blue);
 
-		notTraversable[index].setPosition((cellsArray.at(randomCellId).cellShape.getPosition()));
-		cellsArray.at(randomCellId).setMarked(true);
+		//pathItTakes[index].setSize(sf::Vector2f(sizeOfGridCell, sizeOfGridCell));
+		//pathItTakes[index].setFillColor(sf::Color::Green);
+
+		//notTraversable[index].setPosition((cellsArray.at(randomCellId).cellShape.getPosition()));
+		//cellsArray.at(randomCellId).setMarked(true);
+
+		cellsArray.at(randomCellId).cellShape.setFillColor(sf::Color::Red);
+		cellsArray.at(randomCellId).cellShape.setSize(sf::Vector2f(18.0f, 18.0f));
+		cellsArray.at(randomCellId).isPassableBool = false;
 	}
 
 
@@ -254,6 +261,14 @@ void Grid::update(sf::RenderWindow& t_window) // update method
 	{
 		cellsArray.at(m).update();
 	}
+
+	if (canPlayerMove == true)
+	{
+		if (myPlayer.getPosition() != cellsArray.at(endPointId).cellShape.getPosition())
+		{
+			movePlayer(playerPath);
+		}
+	}
 	startPosCreate(t_window);
 	endPosCreate(t_window);
 }
@@ -271,12 +286,24 @@ void Grid::render(sf::RenderWindow& t_window) // rendering the grid
 		t_window.draw(notTraversable[i]);
 		t_window.draw(pathItTakes[i]);
 	}
+
+	t_window.draw(myPlayer);
 }
 
 int Grid::startPosCreate(sf::RenderWindow& t_window)
 {
 		if (sf::Mouse::isButtonPressed(sf::Mouse::Left) && startPosSelected == false)
 		{
+
+			for (int i = 0; i < cellsArray.size(); i++)
+			{
+				if (cellsArray.at(i).markedBool == true)
+				{
+					cellsArray.at(i).markedBool = false;
+				}
+			}
+
+
 			sf::Vector2f translateMousePos = sf::Vector2f{ sf::Mouse::getPosition(t_window) };
 
 			int xPos = translateMousePos.x / sizeOfGridCell;
@@ -287,7 +314,7 @@ int Grid::startPosCreate(sf::RenderWindow& t_window)
 			if (cellsArray.at(id).getMarked() == false)
 			{
 				cellsArray.at(id).cellShape.setFillColor(sf::Color::Yellow);
-				startPosSelected = true;
+				startPosSelected = false;
 				startPointId = id;
 				return startPointId;
 			}
@@ -306,12 +333,12 @@ int Grid::endPosCreate(sf::RenderWindow& t_window)
 		if (cellsArray.at(id).getMarked() == false)
 		{
 			cellsArray.at(id).cellShape.setFillColor(sf::Color::Blue);
-			endPosSelected = true;
+			endPosSelected = false;
 			endPointId = id;
-			for (int i = 0; i < maxCells; i++) // 40 * 40 = 1600
+			for (int i = 0; i < maxCells; i++) 
 			{
 				cellsArray[i].drawCost = true;
-				cellsArray[i].isPassableBool = true;
+				//cellsArray[i].isPassableBool = true;
 				
 				sf::Vector2f endPos = findEndPos(endPointId);
 
@@ -321,13 +348,14 @@ int Grid::endPosCreate(sf::RenderWindow& t_window)
 
 				cellsArray[i].vectorLines.setRotation(rotation);
 				cellsArray[i].drawVectors = true;
-
-
 			}
 			costCalculation();
 			notTraversableCost();
 			generateHeatMap();
+			clearPath();
 			callAstar(startPointId, endPointId);
+			myPlayer.setPosition(playerPath.top()->cellShape.getPosition());
+			makePath();
 			return endPointId;
 		}
 	}
@@ -456,22 +484,27 @@ Cell* Grid::findCellPoint(sf::Vector2f point)
 
 void Grid::generateHeatMap()
 {
-	float redColour = 255;
-
 	for (int i = 0; i < 2500; i++)
 	{
-		if (cellsArray.at(i).isPassableBool == true)
+		if (cellsArray.at(i).isPassableBool == false)
 		{
-			if (cellsArray.at(i).pathBool == false)
-			{
-				sf::Vector3f colourValue = { redColour - (cellsArray.at(i).getCost() * 8),0.0f,0.0f };
-				if (colourValue.x < 100)
-				{
-					colourValue.x = 100;
-				}
-				cellsArray.at(i).setColor(colourValue);
-			}
+			cellsArray.at(i).cellShape.setFillColor(sf::Color::Red);
+
 		}
+		else if (cellsArray.at(i).isPassableBool == true)
+		{
+			int reverseColour = 7 * cellsArray.at(i).theCost;
+			sf::Color newColour(0.0f, 0.0f, 255.0f - reverseColour);
+			cellsArray.at(i).cellShape.setFillColor(newColour);
+		}
+
+		sf::Vector3f colourValue = { 0.0f,0.0f, 255.0f - (cellsArray.at(i).getCost() * 8) };
+		if (colourValue.z < 100)
+		{
+			colourValue.z = 100;
+		}
+		cellsArray.at(i).setColor(colourValue);
+
 	}
 }
 
@@ -500,6 +533,62 @@ void Grid::callAstar(int t_start, int t_end)
 			index = cellsArray.at(index).previousCell->id;
 			i++;
 		}
+	}
+
+	Cell* pathNode = end;
+	Cell* pathNode2 = end;
+	while (pathNode->previous() != nullptr)
+	{
+		playerPath.push(pathNode);
+		pathNode = pathNode->previous();
+		sf::Vector3f colourValue = { 200.0f,255.0f,0.0f };
+		pathNode->setColor(colourValue);
+	}
+
+	canPlayerMove = true;
+}
+
+void Grid::makePath()
+{
+	for (int i = 0; i < pathFound.size(); i++)
+	{
+		cellsArray.at(pathFound.at(i)).cellShape.setFillColor(sf::Color::Yellow);
+	}
+}
+
+void Grid::clearPath()
+{
+	for (int i = 0; i < pathFound.size(); i++)
+	{
+		int reverseColour = 5 * cellsArray.at(i).theCost;
+		sf::Color newColour(0.0f, 0.0f, 255.0f - reverseColour);
+		cellsArray.at(i).cellShape.setFillColor(newColour);
+		cellsArray.at(pathFound.at(i)).cellShape.setFillColor(newColour);
+	}
+	pathFound.clear();
+}
+
+void Grid::movePlayer(std::stack<Cell*> t_path)
+{
+	if (myPlayer.getPosition().x > t_path.top()->cellShape.getPosition().x)
+	{
+		myPlayer.move(-1, 0);
+	}
+	if (myPlayer.getPosition().x < t_path.top()->cellShape.getPosition().x)
+	{
+		myPlayer.move(1, 0);
+	}
+	if (myPlayer.getPosition().y > t_path.top()->cellShape.getPosition().y)
+	{
+		myPlayer.move(0, -1);
+	}
+	if (myPlayer.getPosition().y < t_path.top()->cellShape.getPosition().y)
+	{
+		myPlayer.move(0, 1);
+	}
+	if (myPlayer.getPosition() == t_path.top()->cellShape.getPosition())
+	{
+		playerPath.pop();
 	}
 }
 
