@@ -62,6 +62,7 @@ public:
 	void update();
 
 	bool drawVectors = false;
+
 };
 
 class Grid
@@ -117,6 +118,7 @@ public:
 	int sizeOfScreen = 750;
 	int sizeOfGridCell = 15;
 	int maxCells = 2500;
+	float PI = 3.14159;
 
 	void generateVertexArrays();
 };

@@ -317,7 +317,7 @@ int Grid::endPosCreate(sf::RenderWindow& t_window)
 
 				float dx = cellsArray[i].cellShape.getPosition().x - endPos.x;
 				float dy = cellsArray[i].cellShape.getPosition().y - endPos.y;
-				float rotation = (-atan2(dx, dy) * 180 / 3.14159);
+				float rotation = (-atan2(dx, dy) * 180 / PI);
 
 				cellsArray[i].vectorLines.setRotation(rotation);
 				cellsArray[i].drawVectors = true;
