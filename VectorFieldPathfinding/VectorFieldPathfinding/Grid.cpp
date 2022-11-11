@@ -76,6 +76,19 @@ void Cell::render(sf::RenderWindow& t_window)
 	}
 }
 
+void Cell::update()
+{
+	if (sf::Keyboard::isKeyPressed(sf::Keyboard::Num1) && drawCost == true)
+	{
+		drawCost = false;
+	}
+	
+	if (sf::Keyboard::isKeyPressed(sf::Keyboard::Num2) && drawCost == false)
+	{
+		drawCost = true;
+	}
+}
+
 void Cell::addCost(int m_cost)
 {
 	theCost = m_cost;
@@ -264,6 +277,10 @@ void Grid::initialiseMap()
 
 void Grid::update(sf::RenderWindow& t_window) // update method
 {
+	for (int m = 0; m < maxCells; m++)
+	{
+		cellsArray.at(m).update();
+	}
 	startPosCreate(t_window);
 	endPosCreate(t_window);
 }

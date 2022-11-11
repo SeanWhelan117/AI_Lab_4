@@ -61,7 +61,7 @@ public:
 
 	sf::VertexArray vertex;
 	void setVectorDistance(sf::Vector2f t_endPos);
-
+	void update();
 
 };
 
